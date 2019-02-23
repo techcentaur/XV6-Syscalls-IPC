@@ -105,6 +105,7 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_print_count(void);
 extern int sys_toggle(void);
+extern int sys_print_toggle(void);
 extern int sys_add(void);
 extern int sys_ps(void);
 
@@ -132,14 +133,15 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_print_count] sys_print_count,
 [SYS_toggle] sys_toggle,
+[SYS_print_toggle] sys_print_toggle,
 [SYS_add] sys_add,
 [SYS_ps] sys_ps,
 };
 
 
 int toggle = 0;
-int call_count_history[25] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-char *call_name_history[25] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count", "sys_toggle", "sys_add", "sys_ps"};
+int call_count_history[26] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+char *call_name_history[26] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count", "sys_toggle", "sys_print_toggle","sys_add", "sys_ps"};
 
 void
 syscall(void)
@@ -151,7 +153,9 @@ syscall(void)
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
   
     // add up in number of times a sys call has appeared
-    call_count_history[num-1] += 1;
+    if(toggle == 1){
+      call_count_history[num-1] += 1;
+    }
 
     curproc->tf->eax = syscalls[num]();
   } else {

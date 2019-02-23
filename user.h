@@ -25,6 +25,7 @@ int sleep(int);
 int uptime(void);
 int print_count(void);
 int toggle(void);
+int print_toggle(void);
 int add(int, int);
 int ps(void);
 

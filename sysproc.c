@@ -8,8 +8,8 @@
 #include "proc.h"
 
 extern int toggle;
-extern int call_count_history[25];
-extern char *call_name_history[25];
+extern int call_count_history[26];
+extern char *call_name_history[26];
 extern void get_ps();
 
 int
@@ -113,9 +113,6 @@ sys_toggle(void)
   int i;
   if(toggle==0){
     toggle = 1;
-    for(i=0; i<25; i++){
-      call_count_history[i] = 0;
-    }
   }
   else{
     toggle = 0;
@@ -127,7 +124,21 @@ sys_toggle(void)
   return 0;
 }
 
-int sys_add(void)
+int
+sys_print_toggle(void)
+{
+  if(toggle == 0){
+    cprintf("TOGGLE OFF\n");
+  }
+  else{
+    cprintf("TOGGLE ON\n");
+  }
+
+  return 0;
+}
+
+int
+sys_add(void)
 {
   int a; int b;
   argint(0, &a);
@@ -135,7 +146,8 @@ int sys_add(void)
   return a+b;
 }
 
-int sys_ps(void)
+int
+sys_ps(void)
 {
   get_ps();
   return 0;
