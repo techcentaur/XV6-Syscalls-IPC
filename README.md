@@ -19,11 +19,9 @@ See a similar type of question on stack overflow [here](https://stackoverflow.co
 
 For e.g.:
 
-sys_fork 10
-
-sys_read 12
-
-sys_write 1
+sys_fork 10 </br>
+sys_read 12 </br>
+sys_write 1 </
 
 
 ```C
@@ -60,7 +58,7 @@ extern char *call_name_history[25];
 // 1. Initialise variables
 int toggle = 0;
 int call_count_history[25] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-char *call_name_history[25] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count", "sys_toggle", "sys_add", "sys_ps"};
+char *call_name_history[25] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count"};
 
 
 void
