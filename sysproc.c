@@ -13,6 +13,7 @@
 extern int toggle;
 extern int call_count_history[28];
 extern char *call_name_history[28];
+
 extern void get_ps();
 extern void send_message();
 extern void receive_message();
@@ -103,10 +104,10 @@ sys_uptime(void)
 int
 sys_print_count(void)
 {
-  int i;
-  for(i=0; i<25; i++){
-    if(call_count_history[i] != 0){
-      cprintf("%s %d\n", call_name_history[i], call_count_history[i]);
+  int j;
+  for(j=0; j<28; j++){
+    if(call_count_history[j] != 0){
+      cprintf("%s %d\n", call_name_history[j], call_count_history[j]);
     }
   }
   return 0;
@@ -115,14 +116,14 @@ sys_print_count(void)
 int
 sys_toggle(void)
 {
-  int i;
+  int k;
   if(toggle==0){
     toggle = 1;
   }
   else{
     toggle = 0;
-    for(i=0; i<25; i++){
-      call_count_history[i] = 0;
+    for(k=0; k<28; k++){
+      call_count_history[k] = 0;
     }
   }
 
@@ -163,6 +164,8 @@ sys_send(void)
 {
   int s_id, r_id; 
   char *message;
+
+  // char *msg = (char *)message;
 
   if(argstr(2, &message) < 0){
     return -1;

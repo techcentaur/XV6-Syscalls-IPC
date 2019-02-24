@@ -10,6 +10,9 @@
 // include IPC
 #include "ipc.h"
 
+#define MSG_SIZE 8
+#define MAX_MSG 20
+
 // define a queue
 static queue* qBuffer[NPROC];
 
@@ -37,8 +40,8 @@ pinit(void)
     if((qBuffer[i] = (queue*)kalloc()) != 0){
       qBuffer[i]->q_id = i;
       qBuffer[i]->size = 0;
-      qBuffer[i]->m_first = 0;
-      qBuffer[i]->m_last = 0;
+      qBuffer[i]->first_id = 0;
+      qBuffer[i]->last_id = 0;
     } 
   }
 }
@@ -571,38 +574,35 @@ void print_queue_buffer(){
   int i;
   for(i=1;i<=NPROC; i++){
     if(qBuffer[i]->size !=0 ){
-      cprintf("\n%d message in reciveing pid %d! \n", qBuffer[i]->size, i);
-      
-      cprintf("\nmessage: %s \n", (qBuffer[i]->m_first)->actual_message);
+      cprintf("\n%d messages I have MF! And in reciveing pid number %d! \n", qBuffer[i]->size, i);
+      int j=qBuffer[i]->first_id;
+      while(1 > 0)
+      {
+        cprintf("\n Fucking message is: %s \n", (qBuffer[i]->messages[j]));
+        j+=1;
+        j = j % MAX_MSG;
+        if(j == qBuffer[i]->last_id){
+          break;
+        }
+      }
     }
   }
 }
 
 // writing send_message function here
 void send_message(int s_id, int r_id, char *msg){
-  struct message *m = 0;
 
-  // create a message
-  if((m = (message *)kalloc())==0){
+  if(qBuffer[r_id]->size >= MAX_MSG){
+    cprintf("Maximum messages limit crossed!");
     return;
   }
 
-  (m)->m_id = qBuffer[r_id]->size++;
-  (m)->pid_sender = s_id;
-  (m)->pid_receiver = r_id;
-  (m)->actual_message = msg;
-
+  qBuffer[r_id]->messages[qBuffer[r_id]->last_id] = msg;
+  
   // put message in queue
-  
-  if(qBuffer[r_id]->size==1){
-    qBuffer[r_id]->m_first = m;
-    qBuffer[r_id]->m_last = m;
-  }
-  else if(qBuffer[r_id]->size>1){
-    qBuffer[r_id]->m_last = m;
-  }
-  
-  // qBuffer[r_id]->size++;
+  qBuffer[r_id]->size++;
+  qBuffer[r_id]->last_id = (qBuffer[r_id]->last_id+1) % MAX_MSG;
+
   print_queue_buffer();
 }
 
@@ -610,11 +610,12 @@ void receive_message(char *msg){
   int id = myproc()->pid;
 
   int b;
-  for(b=0; b<8; b++){
-    *(msg + b) = *((qBuffer[id]->m_first)->actual_message + b);
+  for(b=0; b<MSG_SIZE; b++){
+    *(msg + b) = *(qBuffer[id]->messages[qBuffer[id]->first_id] + b);
   }
+
+  qBuffer[id]->size--;
+  qBuffer[id]->first_id = (qBuffer[id]->first_id + 1) % MAX_MSG;
     // sleep(curproc, &ptable.lock);  //DOC: wait-sleep
 
-  
-  // qBuffer[id]->m_last
 }

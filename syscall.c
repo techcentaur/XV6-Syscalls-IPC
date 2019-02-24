@@ -147,7 +147,7 @@ static int (*syscalls[])(void) = {
 
 int toggle = 0;
 int call_count_history[28] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-char *call_name_history[28] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count", "sys_toggle", "sys_print_toggle","sys_add", "sys_ps", "sys_send", "sys_recv"};
+char *call_name_history[28] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count", "sys_toggle", "sys_print_toggle", "sys_add", "sys_ps", "sys_send", "sys_recv"};
 
 void
 syscall(void)
@@ -160,6 +160,7 @@ syscall(void)
   
     // add up in number of times a sys call has appeared
     if(toggle == 1){
+      cprintf("%d\n", num);
       call_count_history[num-1] += 1;
     }
 
