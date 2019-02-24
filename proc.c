@@ -603,7 +603,7 @@ void send_message(int s_id, int r_id, char *msg){
   qBuffer[r_id]->size++;
   qBuffer[r_id]->last_id = (qBuffer[r_id]->last_id+1) % MAX_MSG;
 
-  print_queue_buffer();
+  // print_queue_buffer();
 }
 
 // receive message function
@@ -619,6 +619,5 @@ void receive_message(char *msg){
 
   qBuffer[id]->size--;
   qBuffer[id]->first_id = (qBuffer[id]->first_id + 1) % MAX_MSG;
- 
 
 }
