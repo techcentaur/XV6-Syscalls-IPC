@@ -160,7 +160,6 @@ syscall(void)
   
     // add up in number of times a sys call has appeared
     if(toggle == 1){
-      cprintf("%d\n", num);
       call_count_history[num-1] += 1;
     }
 

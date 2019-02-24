@@ -606,16 +606,19 @@ void send_message(int s_id, int r_id, char *msg){
   print_queue_buffer();
 }
 
+// receive message function
 void receive_message(char *msg){
   int id = myproc()->pid;
 
   int b;
+
+    // sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   for(b=0; b<MSG_SIZE; b++){
     *(msg + b) = *(qBuffer[id]->messages[qBuffer[id]->first_id] + b);
   }
 
   qBuffer[id]->size--;
   qBuffer[id]->first_id = (qBuffer[id]->first_id + 1) % MAX_MSG;
-    // sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+ 
 
 }

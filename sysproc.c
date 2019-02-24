@@ -119,6 +119,9 @@ sys_toggle(void)
   int k;
   if(toggle==0){
     toggle = 1;
+    for(k=0; k<28; k++){
+      call_count_history[k] = 0;
+    }
   }
   else{
     toggle = 0;
