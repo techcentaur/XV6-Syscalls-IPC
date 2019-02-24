@@ -7,6 +7,12 @@
 #include "proc.h"
 #include "spinlock.h"
 
+// include IPC
+#include "ipc.h"
+
+// define a queue
+static queue* qBuffer[NPROC];
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -24,6 +30,17 @@ void
 pinit(void)
 {
   initlock(&ptable.lock, "ptable");
+
+  // initialise queue for every process ID
+  int i;
+  for(i=0; i<=NPROC; i++){
+    if((qBuffer[i] = (queue*)kalloc()) != 0){
+      qBuffer[i]->q_id = i;
+      qBuffer[i]->size = 0;
+      qBuffer[i]->m_first = 0;
+      qBuffer[i]->m_last = 0;
+    } 
+  }
 }
 
 // Must be called with interrupts disabled
@@ -533,6 +550,7 @@ procdump(void)
   }
 }
 
+// writing get_ps function here
 void get_ps(void)
 {
   struct proc *p;
@@ -546,4 +564,57 @@ void get_ps(void)
   }
   
   release(&ptable.lock);
+}
+
+// print queue buffer
+void print_queue_buffer(){
+  int i;
+  for(i=1;i<=NPROC; i++){
+    if(qBuffer[i]->size !=0 ){
+      cprintf("\n%d message in reciveing pid %d! \n", qBuffer[i]->size, i);
+      
+      cprintf("\nmessage: %s \n", (qBuffer[i]->m_first)->actual_message);
+    }
+  }
+}
+
+// writing send_message function here
+void send_message(int s_id, int r_id, char *msg){
+  struct message *m = 0;
+
+  // create a message
+  if((m = (message *)kalloc())==0){
+    return;
+  }
+
+  (m)->m_id = qBuffer[r_id]->size++;
+  (m)->pid_sender = s_id;
+  (m)->pid_receiver = r_id;
+  (m)->actual_message = msg;
+
+  // put message in queue
+  
+  if(qBuffer[r_id]->size==1){
+    qBuffer[r_id]->m_first = m;
+    qBuffer[r_id]->m_last = m;
+  }
+  else if(qBuffer[r_id]->size>1){
+    qBuffer[r_id]->m_last = m;
+  }
+  
+  // qBuffer[r_id]->size++;
+  print_queue_buffer();
+}
+
+void receive_message(char *msg){
+  int id = myproc()->pid;
+
+  int b;
+  for(b=0; b<8; b++){
+    *(msg + b) = *((qBuffer[id]->m_first)->actual_message + b);
+  }
+    // sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+
+  
+  // qBuffer[id]->m_last
 }

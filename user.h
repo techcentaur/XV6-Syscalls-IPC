@@ -28,6 +28,8 @@ int toggle(void);
 int print_toggle(void);
 int add(int, int);
 int ps(void);
+int send(int, int, char*);
+int recv(char*);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -6,6 +6,8 @@
 #include "proc.h"
 #include "x86.h"
 #include "syscall.h"
+// include ipc header 
+#include "ipc.h"
 
 // User code makes a system call with INT T_SYSCALL.
 // System call number in %eax.
@@ -108,6 +110,8 @@ extern int sys_toggle(void);
 extern int sys_print_toggle(void);
 extern int sys_add(void);
 extern int sys_ps(void);
+extern int sys_send(void);
+extern int sys_recv(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -136,12 +140,14 @@ static int (*syscalls[])(void) = {
 [SYS_print_toggle] sys_print_toggle,
 [SYS_add] sys_add,
 [SYS_ps] sys_ps,
+[SYS_send] sys_send,
+[SYS_recv] sys_recv,
 };
 
 
 int toggle = 0;
-int call_count_history[26] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-char *call_name_history[26] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count", "sys_toggle", "sys_print_toggle","sys_add", "sys_ps"};
+int call_count_history[28] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+char *call_name_history[28] = {"sys_fork", "sys_exit", "sys_wait", "sys_pipe", "sys_read", "sys_kill", "sys_exec", "sys_fstat", "sys_chdir", "sys_dup", "sys_getpid", "sys_sbrk", "sys_sleep", "sys_uptime", "sys_open", "sys_write", "sys_mknod", "sys_unlink", "sys_link", "sys_mkdir", "sys_close", "sys_print_count", "sys_toggle", "sys_print_toggle","sys_add", "sys_ps", "sys_send", "sys_recv"};
 
 void
 syscall(void)

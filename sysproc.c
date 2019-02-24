@@ -7,10 +7,15 @@
 #include "mmu.h"
 #include "proc.h"
 
+// include IPC
+#include "ipc.h"
+
 extern int toggle;
-extern int call_count_history[26];
-extern char *call_name_history[26];
+extern int call_count_history[28];
+extern char *call_name_history[28];
 extern void get_ps();
+extern void send_message();
+extern void receive_message();
 
 int
 sys_fork(void)
@@ -150,5 +155,38 @@ int
 sys_ps(void)
 {
   get_ps();
+  return 0;
+}
+
+int
+sys_send(void)
+{
+  int s_id, r_id; 
+  char *message;
+
+  if(argstr(2, &message) < 0){
+    return -1;
+  }
+
+  if(argint(0, &s_id) < 0){
+    return -1;
+  }
+  if(argint(1, &r_id) < 0){
+    return -1;
+  }
+  
+  send_message(s_id, r_id, message);
+  return 0;
+}
+
+int sys_recv(void)
+{
+  char *message;
+
+  if(argstr(0, &message) < 0){
+    return -1;
+  }
+
+  receive_message(message);
   return 0;
 }
