@@ -603,21 +603,44 @@ void send_message(int s_id, int r_id, char *msg){
   qBuffer[r_id]->size++;
   qBuffer[r_id]->last_id = (qBuffer[r_id]->last_id+1) % MAX_MSG;
 
+  struct proc *p;
+  acquire(&ptable.lock);
+  p = &ptable.proc[r_id];
+
+  if(p->state == SLEEPING){
+    wakeup1(p); 
+    release(&ptable.lock);
+  }
+  release(&ptable.lock);
+
   // print_queue_buffer();
 }
 
 // receive message function
 void receive_message(char *msg){
   int id = myproc()->pid;
-
   int b;
 
-    // sleep(curproc, &ptable.lock);  //DOC: wait-sleep
-  for(b=0; b<MSG_SIZE; b++){
-    *(msg + b) = *(qBuffer[id]->messages[qBuffer[id]->first_id] + b);
+  if(qBuffer[id]->size == 0){
+    struct proc *p;
+    p = &ptable.proc[id];
+
+    acquire(&ptable.lock);
+    sleep(p, &ptable.lock); 
+    release(&ptable.lock);
+  }
+  else{
+    for(b=0; b<MSG_SIZE; b++){
+      *(msg + b) = *(qBuffer[id]->messages[qBuffer[id]->first_id] + b);
+    }
+
+    qBuffer[id]->size--;
+    qBuffer[id]->first_id = (qBuffer[id]->first_id + 1) % MAX_MSG;
   }
 
-  qBuffer[id]->size--;
-  qBuffer[id]->first_id = (qBuffer[id]->first_id + 1) % MAX_MSG;
+}
 
+// multicasting IPC
+void put_message_in_buffer(int rid, char* message){
+  cprintf("pass");
 }

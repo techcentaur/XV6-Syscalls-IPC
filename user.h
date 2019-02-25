@@ -30,6 +30,7 @@ int add(int, int);
 int ps(void);
 int send(int, int, char*);
 int recv(char*);
+// int send_multi(int, int, char*);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -17,6 +17,7 @@ extern char *call_name_history[28];
 extern void get_ps();
 extern void send_message();
 extern void receive_message();
+// extern void put_message_in_buffer();
 
 int
 sys_fork(void)
@@ -196,3 +197,9 @@ int sys_recv(void)
   receive_message(message);
   return 0;
 }
+
+// int sys_send_multi(int sid, int rid, char* message){
+//   put_message_in_buffer(rid, message);
+
+//   return 0;
+// }

@@ -112,6 +112,7 @@ extern int sys_add(void);
 extern int sys_ps(void);
 extern int sys_send(void);
 extern int sys_recv(void);
+extern int sys_send_multi(int sid, int rid, char* msg);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -142,6 +143,7 @@ static int (*syscalls[])(void) = {
 [SYS_ps] sys_ps,
 [SYS_send] sys_send,
 [SYS_recv] sys_recv,
+// [SYS_send_multi] sys_send_multi,
 };
 
 
