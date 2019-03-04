@@ -17,7 +17,8 @@ extern char *call_name_history[28];
 extern void get_ps();
 extern void send_message();
 extern void receive_message();
-// extern void put_message_in_buffer();
+extern void receive_message_multi();
+extern void put_message_in_buffer();
 
 int
 sys_fork(void)
@@ -169,11 +170,10 @@ sys_send(void)
   int s_id, r_id; 
   char *message;
 
-  // char *msg = (char *)message;
-
   if(argstr(2, &message) < 0){
     return -1;
   }
+  // cprintf("%d\n", message);
 
   if(argint(0, &s_id) < 0){
     return -1;
@@ -189,7 +189,6 @@ sys_send(void)
 int sys_recv(void)
 {
   char *message;
-
   if(argstr(0, &message) < 0){
     return -1;
   }
@@ -198,8 +197,12 @@ int sys_recv(void)
   return 0;
 }
 
-// int sys_send_multi(int sid, int rid, char* message){
+// int sys_send_multi(int sid, int rid[], char* msg);{
 //   put_message_in_buffer(rid, message);
-
 //   return 0;
+// }
+
+// int sys_recv_multi(void)
+// {
+  
 // }

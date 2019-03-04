@@ -28,9 +28,10 @@ int toggle(void);
 int print_toggle(void);
 int add(int, int);
 int ps(void);
-int send(int, int, char*);
-int recv(char*);
-// int send_multi(int, int, char*);
+int send(int, int, void*);
+int recv(void*);
+// int send_multi(int, int*, char*);
+// int recv_multi(char*);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -45,3 +46,4 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+void itoa(int, char*);

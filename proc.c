@@ -13,8 +13,21 @@
 #define MSG_SIZE 8
 #define MAX_MSG 20
 
-// define a queue
-static queue* qBuffer[NPROC];
+// For IPC
+char messages[NPROC][MAX_MSG][8];
+int first_msg[NPROC] = {0};
+int last_msg[NPROC] = {0};
+int size[NPROC] = {0};
+
+
+// typedef struct {
+//   struct trapframe *tf[50];
+//   uint esp[50];
+//   int last;
+//   int size;
+// } context_def;
+
+// static context_def* c1;
 
 struct {
   struct spinlock lock;
@@ -33,17 +46,6 @@ void
 pinit(void)
 {
   initlock(&ptable.lock, "ptable");
-
-  // initialise queue for every process ID
-  int i;
-  for(i=0; i<=NPROC; i++){
-    if((qBuffer[i] = (queue*)kalloc()) != 0){
-      qBuffer[i]->q_id = i;
-      qBuffer[i]->size = 0;
-      qBuffer[i]->first_id = 0;
-      qBuffer[i]->last_id = 0;
-    } 
-  }
 }
 
 // Must be called with interrupts disabled
@@ -561,27 +563,36 @@ void get_ps(void)
   acquire(&ptable.lock);
   for(p=ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-    if(p->pid==0)
-      break;
-    cprintf("pid:%d name:%s\n", p->pid, p->name);
+    if(p->pid!=UNUSED)
+      cprintf("pid:%d name:%s\n", p->pid, p->name);
   }
-  
   release(&ptable.lock);
 }
 
-// print queue buffer
-void print_queue_buffer(){
-  int i;
-  for(i=1;i<=NPROC; i++){
-    if(qBuffer[i]->size !=0 ){
-      cprintf("\n%d messages I have MF! And in reciveing pid number %d! \n", qBuffer[i]->size, i);
-      int j=qBuffer[i]->first_id;
-      while(1 > 0)
-      {
-        cprintf("\n Fucking message is: %s \n", (qBuffer[i]->messages[j]));
-        j+=1;
+
+void print_buffer(){
+  /**
+  Print the whole message buffer
+  */
+
+  int id;
+  for(id=0; id<NPROC; id++){
+    if(size[id] != 0){
+      cprintf("[*] %d messages found!\n", size[id]);
+
+      int j;
+      j = first_msg[id];
+   
+      while(1 > 0){
+        char* m1;
+        m1 = &messages[id][j][0];
+   
+        cprintf("[*] %s\n", m1);
+        
+        j += 1;
         j = j % MAX_MSG;
-        if(j == qBuffer[i]->last_id){
+        
+        if(j == last_msg[id]){
           break;
         }
       }
@@ -589,58 +600,127 @@ void print_queue_buffer(){
   }
 }
 
-// writing send_message function here
-void send_message(int s_id, int r_id, char *msg){
 
-  if(qBuffer[r_id]->size >= MAX_MSG){
-    cprintf("Maximum messages limit crossed!");
+void send_message(int s_id, int r_id, char *msg){
+  /**
+  Put message in buffer
+  If process sleeping, wake it up
+  */
+
+  if(size[r_id] >= MAX_MSG){
+    panic("[!] Maximum messages limit crossed!");
     return;
   }
 
-  qBuffer[r_id]->messages[qBuffer[r_id]->last_id] = msg;
-  
-  // put message in queue
-  qBuffer[r_id]->size++;
-  qBuffer[r_id]->last_id = (qBuffer[r_id]->last_id+1) % MAX_MSG;
+  int i;
+  for(i=0; i<MSG_SIZE; i++){
+    messages[r_id][last_msg[r_id]][i] = *(msg+i);
+  }
 
+  last_msg[r_id] += 1;
+  size[r_id] += 1;
+
+  // If recieve is sleeping, wake him up
   struct proc *p;
-  acquire(&ptable.lock);
   p = &ptable.proc[r_id];
 
-  if(p->state == SLEEPING){
-    wakeup1(p); 
+  if(p->state == UNUSED){
+    acquire(&ptable.lock);
+    wakeup1(&p); 
     release(&ptable.lock);
   }
-  release(&ptable.lock);
 
-  // print_queue_buffer();
 }
 
-// receive message function
 void receive_message(char *msg){
+  /**
+  receive message from buffer `messages`
+  if no message, put process in sleep
+  */
+
   int id = myproc()->pid;
   int b;
 
-  if(qBuffer[id]->size == 0){
+  // If no messages in the buffer, put the process to sleep
+  if(size[id] == 0){
     struct proc *p;
     p = &ptable.proc[id];
 
     acquire(&ptable.lock);
-    sleep(p, &ptable.lock); 
+    sleep(&p, &ptable.lock); 
     release(&ptable.lock);
   }
-  else{
-    for(b=0; b<MSG_SIZE; b++){
-      *(msg + b) = *(qBuffer[id]->messages[qBuffer[id]->first_id] + b);
-    }
 
-    qBuffer[id]->size--;
-    qBuffer[id]->first_id = (qBuffer[id]->first_id + 1) % MAX_MSG;
+  for(b=0; b<MSG_SIZE; b++){
+    *(msg + b) = (messages[id][first_msg[id]][b]);
   }
 
+  size[id] -= 1;
+  first_msg[id] += 1;
 }
 
+
 // multicasting IPC
-void put_message_in_buffer(int rid, char* message){
-  cprintf("pass");
-}
+// void put_message_in_buffer(int r_id[], char* msg, void* interr_ptr){
+
+//   int i;
+//   int size = sizeof(r_id)/sizeof(r_id[0]);
+
+//   for(i=0; i<size; i++){
+//     int rid = r_id[i];
+
+//     if(qBuffer[rid]->size >= MAX_MSG){
+//       cprintf("Maximum messages limit crossed!");
+//       return;
+//     }
+
+//     qBuffer[rid]->messages[qBuffer[rid]->last_id] = msg;
+//     // put message in queue
+//     qBuffer[rid]->size++;
+//     qBuffer[rid]->last_id = (qBuffer[rid]->last_id+1) % MAX_MSG;
+//   }
+//   // put messages in buffer
+
+//   // save the context in trapframe
+//   // and save the frame pointer to the user program
+//   if(1 > 0){
+
+//   }else{
+//     int id = myproc()->pid;
+
+//     struct proc *p;
+//     p = &ptable.proc[id];
+
+//     memmove(&c1->tf[c1->last], p->tf, sizeof(p->tf)); //took backup;
+//     c1->esp[c1->last] = p->tf->esp;
+
+//     c1->last++;
+//     c1->size++;
+//   }
+
+
+//   // call interrupt with suitable arugments
+//   // interr_ptr(r_id);
+
+//   // after returing
+//   // load the context and the frame pointer
+
+//   if(1 > 0){}
+//     else{
+//     int id = myproc()->pid;
+
+//     struct proc *p;
+//     p = &ptable.proc[id];
+
+//     memmove(&p->tf, c1->tf[(c1->last) - 1], sizeof(p->tf)); //took backup;
+//     p->tf->esp = c1->esp[(c1->last) - 1]; 
+//     c1->last--;
+//     c1->size--;
+//   }
+
+// }
+
+
+// void receive_message_multi(char *msg){
+
+// }
