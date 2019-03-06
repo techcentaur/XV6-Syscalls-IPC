@@ -183,6 +183,7 @@ sys_send(void)
   }
   
   send_message(s_id, r_id, message);
+
   return 0;
 }
 
@@ -222,11 +223,13 @@ int sys_save_IHandler(void){
 
   // if(argstr(1, &r_id) < 0){
   cprintf("[1] f call begin!\n");
-  (*f2)();
-  // cprintf("%d\n", f2);
+  // cprintf("%d\n", (myproc()->tf->eip));
+  
+  (myproc()->tf->eip) = (uint)(f2);
+
   cprintf("[1] f call end!\n");
-  //   return -1;
-  // }  
+  // (*f2)();
+
 
   return 0;
 }
