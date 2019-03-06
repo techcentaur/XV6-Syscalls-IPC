@@ -206,3 +206,27 @@ int sys_recv(void)
 // {
   
 // }
+int sys_save_IHandler(void){
+
+  cprintf("[!] You're in in sysproc!\n");
+  void (*f2)(void);
+
+  // cprintf("f2 F pointer mem address %d\n", &f2);
+
+  if(arg_funcptr(0, &f2) < 0){
+    return -1;
+  }
+
+  // cprintf("f2 F pointer mem address 2 %d\n", &f2);
+  cprintf("[.] functional pointer value here %d\n", f2);
+
+  // if(argstr(1, &r_id) < 0){
+  cprintf("[1] f call begin!\n");
+  (*f2)();
+  // cprintf("%d\n", f2);
+  cprintf("[1] f call end!\n");
+  //   return -1;
+  // }  
+
+  return 0;
+}

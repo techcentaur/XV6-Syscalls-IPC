@@ -30,6 +30,7 @@ int add(int, int);
 int ps(void);
 int send(int, int, void*);
 int recv(void*);
+int save_IHandler(void (*)());
 // int send_multi(int, int*, char*);
 // int recv_multi(char*);
 

@@ -71,6 +71,24 @@ argptr(int n, char **pp, int size)
   return 0;
 }
 
+int
+arg_funcptr(int n, void (**f1)())
+{
+  int i;
+ 
+  // cprintf("i mem %d\n", &i);
+  if(argint(n, &i) < 0)
+    return -1;
+  
+  // cprintf("i mem 2 %d\n", &i);
+  // cprintf("f1 pointing address mem add %d\n", &(*f1));
+  
+  *f1 = (void (*)())i;
+  return 0;
+}
+
+
+
 // Fetch the nth word-sized system call argument as a string pointer.
 // Check that the pointer is valid and the string is nul-terminated.
 // (There is no shared writable memory, so the string can't change
@@ -112,6 +130,7 @@ extern int sys_add(void);
 extern int sys_ps(void);
 extern int sys_send(void);
 extern int sys_recv(void);
+extern int sys_save_IHandler(void);
 // extern int sys_send_multi(void);
 // extern int sys_recv_multi(void);
 
@@ -145,6 +164,7 @@ static int (*syscalls[])(void) = {
 [SYS_ps] sys_ps,
 [SYS_send] sys_send,
 [SYS_recv] sys_recv,
+[SYS_save_IHandler] sys_save_IHandler,
 // [SYS_send_multi] sys_send_multi,
 // [SYS_recv_multi] sys_recv_multi,
 };
