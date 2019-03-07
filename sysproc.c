@@ -17,8 +17,9 @@ extern char *call_name_history[28];
 extern void get_ps();
 extern void send_message();
 extern void receive_message();
-extern void receive_message_multi();
-extern void put_message_in_buffer();
+extern void signal_return();
+extern void save_interrupt_handler_address();
+extern void send_to_multi();
 
 int
 sys_fork(void)
@@ -208,9 +209,8 @@ int sys_recv(void)
   
 // }
 int sys_save_IHandler(void){
-
-  cprintf("[!] You're in in sysproc!\n");
-  void (*f2)(void);
+  cprintf("[!] In `sysproc` Over!\n");
+  void (*f2)(int*, int);
 
   // cprintf("f2 F pointer mem address %d\n", &f2);
 
@@ -219,17 +219,49 @@ int sys_save_IHandler(void){
   }
 
   // cprintf("f2 F pointer mem address 2 %d\n", &f2);
-  cprintf("[.] functional pointer value here %d\n", f2);
+  // cprintf("[.] functional pointer value here %d\n", f2);
 
   // if(argstr(1, &r_id) < 0){
-  cprintf("[1] f call begin!\n");
+  save_interrupt_handler_address(f2);
+
+  // cprintf("[1] Kernel -> User!\n");
+
+  // save the context
+  // save_trapframe(f2);
+
   // cprintf("%d\n", (myproc()->tf->eip));
   
-  (myproc()->tf->eip) = (uint)(f2);
+  // (myproc()->tf->eip) = (uint)(f2);
 
-  cprintf("[1] f call end!\n");
+  // cprintf("[1] User -> Kernel!\n");
   // (*f2)();
-
-
   return 0;
+}
+
+int sys_sig_ret(void){
+  signal_return();
+  return 1;
+}
+
+int sys_send_multi(void){
+  int s_id;
+  int* r_ids; 
+  char *message;
+  int length_of_ptr;
+
+  if(argint(0, &s_id) < 0){
+    return -1;
+  }
+  if(argint(3, &length_of_ptr) < 0){
+    return -1;
+  }
+  if(argptr2(1, &r_ids, length_of_ptr) < 0){
+    return -1;
+  }
+  if(argstr(2, &message) < 0){
+    return -1;
+  }
+  
+  send_to_multi(s_id, r_ids, message, length_of_ptr);
+  return 1;
 }

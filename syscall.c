@@ -72,7 +72,21 @@ argptr(int n, char **pp, int size)
 }
 
 int
-arg_funcptr(int n, void (**f1)())
+argptr2(int n, int **pp, int size)
+{
+  int i;
+  struct proc *curproc = myproc();
+ 
+  if(argint(n, &i) < 0)
+    return -1;
+  if(size < 0 || (uint)i >= curproc->sz || (uint)i+size > curproc->sz)
+    return -1;
+  *pp = (int*)i;
+  return 0;
+}
+
+int
+arg_funcptr(int n, void (**f1)(int*, int))
 {
   int i;
  
@@ -83,7 +97,7 @@ arg_funcptr(int n, void (**f1)())
   // cprintf("i mem 2 %d\n", &i);
   // cprintf("f1 pointing address mem add %d\n", &(*f1));
   
-  *f1 = (void (*)())i;
+  *f1 = (void (*)(int*, int))i;
   return 0;
 }
 
@@ -131,7 +145,8 @@ extern int sys_ps(void);
 extern int sys_send(void);
 extern int sys_recv(void);
 extern int sys_save_IHandler(void);
-// extern int sys_send_multi(void);
+extern int sys_sig_ret(void);
+extern int sys_send_multi(void);
 // extern int sys_recv_multi(void);
 
 
@@ -165,8 +180,8 @@ static int (*syscalls[])(void) = {
 [SYS_send] sys_send,
 [SYS_recv] sys_recv,
 [SYS_save_IHandler] sys_save_IHandler,
-// [SYS_send_multi] sys_send_multi,
-// [SYS_recv_multi] sys_recv_multi,
+[SYS_sig_ret] sys_sig_ret,
+[SYS_send_multi] sys_send_multi,
 };
 
 

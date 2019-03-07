@@ -28,5 +28,5 @@
 #define SYS_send 27
 #define SYS_recv 28
 #define SYS_save_IHandler 29
-// #define SYS_send_multi 29
-// #define SYS_recv_multi 30
+#define SYS_sig_ret 30
+#define SYS_send_multi 31

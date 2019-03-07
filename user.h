@@ -30,8 +30,16 @@ int add(int, int);
 int ps(void);
 int send(int, int, void*);
 int recv(void*);
-int save_IHandler(void (*)());
-// int send_multi(int, int*, char*);
+int save_IHandler(void (*)(int*, int));
+int send_multi(int, int*, char*, int);
+
+/*
+No use of defining `signal_ret`:
+It would never be called explicitly anyways.
+*/
+
+// int signal_ret();
+
 // int recv_multi(char*);
 
 // ulib.c

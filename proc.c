@@ -18,16 +18,15 @@ char messages[NPROC][MAX_MSG][8];
 int first_msg[NPROC] = {0};
 int last_msg[NPROC] = {0};
 int size[NPROC] = {0};
+int interrupt_handler_address = 0;
 
+typedef struct {
+  struct trapframe tf_old;
+  uint eip;
+} context_history;
 
-// typedef struct {
-//   struct trapframe *tf[50];
-//   uint esp[50];
-//   int last;
-//   int size;
-// } context_def;
-
-// static context_def* c1;
+static context_history history1;
+struct context c1;
 
 struct {
   struct spinlock lock;
@@ -578,7 +577,7 @@ void print_buffer(){
   int id;
   for(id=0; id<NPROC; id++){
     if(size[id] != 0){
-      cprintf("[*] %d messages found!\n", size[id]);
+      cprintf("[*] %d messages found of id: %d!\n", size[id], id);
 
       int j;
       j = first_msg[id];
@@ -660,67 +659,69 @@ void receive_message(char *msg){
 }
 
 
-// multicasting IPC
-// void put_message_in_buffer(int r_id[], char* msg, void* interr_ptr){
+void signal_return(){
+  /**
+  Signal will be returned here!
+  */
 
-//   int i;
-//   int size = sizeof(r_id)/sizeof(r_id[0]);
+  memmove(myproc()->tf, &history1.tf_old, sizeof(struct trapframe));
+}
 
-//   for(i=0; i<size; i++){
-//     int rid = r_id[i];
+void save_interrupt_handler_address(int add){
+  interrupt_handler_address = add;
+  cprintf("[.] Saving IH add: %d\n", interrupt_handler_address);
+}
 
-//     if(qBuffer[rid]->size >= MAX_MSG){
-//       cprintf("Maximum messages limit crossed!");
-//       return;
-//     }
+void send_to_multi(int s_id, int* r_ids, char *msg, int l){
 
-//     qBuffer[rid]->messages[qBuffer[rid]->last_id] = msg;
-//     // put message in queue
-//     qBuffer[rid]->size++;
-//     qBuffer[rid]->last_id = (qBuffer[rid]->last_id+1) % MAX_MSG;
-//   }
-//   // put messages in buffer
+  cprintf("In the send_multi!\n");
 
-//   // save the context in trapframe
-//   // and save the frame pointer to the user program
-//   if(1 > 0){
+  // put all into buffer
+  int i;
+  for(i=0; i<l; i++){
+    int r_id = *(r_ids + i);
+    cprintf("rid: %d\n", (r_id));
 
-//   }else{
-//     int id = myproc()->pid;
+     if(size[r_id] >= MAX_MSG){
+        panic("[!] Maximum messages limit crossed!");
+        return;
+      }
 
-//     struct proc *p;
-//     p = &ptable.proc[id];
+      int j;
+      for(j=0; j<MSG_SIZE; j++){
+        messages[r_id][last_msg[r_id]][j] = *(msg+j);
+      }
 
-//     memmove(&c1->tf[c1->last], p->tf, sizeof(p->tf)); //took backup;
-//     c1->esp[c1->last] = p->tf->esp;
+      last_msg[r_id] += 1;
+      size[r_id] += 1;
+  }
 
-//     c1->last++;
-//     c1->size++;
-//   }
+  print_buffer();
 
+  // call interrupt handler
 
-//   // call interrupt with suitable arugments
-//   // interr_ptr(r_id);
-
-//   // after returing
-//   // load the context and the frame pointer
-
-//   if(1 > 0){}
-//     else{
-//     int id = myproc()->pid;
-
-//     struct proc *p;
-//     p = &ptable.proc[id];
-
-//     memmove(&p->tf, c1->tf[(c1->last) - 1], sizeof(p->tf)); //took backup;
-//     p->tf->esp = c1->esp[(c1->last) - 1]; 
-//     c1->last--;
-//     c1->size--;
-//   }
-
-// }
+  cprintf("r_ids: %p\n", r_ids);
 
 
-// void receive_message_multi(char *msg){
+  cprintf("eip0: %d\n", myproc()->tf->eip);
+  memmove(&history1.tf_old, myproc()->tf, sizeof(struct trapframe));
+  myproc()->tf->esp -= (uint)&invoke_sigret_end - (uint)&invoke_sigret_start;
+  memmove((void*)myproc()->tf->esp, invoke_sigret_start, (uint)&invoke_sigret_end - (uint)&invoke_sigret_start);  
+  *((int*)(myproc()->tf->esp - 4)) = l;
+  *((int**)(myproc()->tf->esp - 8)) = r_ids;
+  *((int*)(myproc()->tf->esp - 12)) = myproc()->tf->esp; // sigret system call code address
+  myproc()->tf->esp -= 12;
+  
+  // c1 = *(myproc()->context);
+  // cprintf("[!] What's this: %d\n", myproc()->tf->eip);
+  // getting interrupt handler address in the above question
 
-// }
+  cprintf("[!] After calling interrupt handler?\n");
+  cprintf("eip2: %d\n", myproc()->tf->eip);
+  cprintf("DPL: %d\n", DPL_USER);
+
+
+  cprintf("address %d\n", interrupt_handler_address);
+  history1.eip = myproc()->tf->eip+4;
+  myproc()->tf->eip = (uint)interrupt_handler_address;
+}
